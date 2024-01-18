@@ -2,20 +2,39 @@ package com.amazonaws.client.extendedClient;
 
 import com.amazon.sqs.javamessaging.AmazonSQSExtendedClient;
 import com.amazon.sqs.javamessaging.ExtendedClientConfiguration;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.*;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
-import com.amazonaws.services.sqs.model.*;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.BucketLifecycleConfiguration;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.ExpirationStatus;
+import software.amazon.awssdk.services.s3.model.LifecycleExpiration;
+import software.amazon.awssdk.services.s3.model.LifecycleRule;
+import software.amazon.awssdk.services.s3.model.LifecycleRuleFilter;
+import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.PutBucketLifecycleConfigurationRequest;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
+import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+
+
 /**
- * Examples of using Amazon SQS Extended Client Library for Java
+ * Examples of using Amazon SQS Extended Client Library for Java 2.x
  *
  */
 public class SqsExtendedClientExamples {
@@ -30,108 +49,94 @@ public class SqsExtendedClientExamples {
          * and region) set automatically. For more information, see
          * Creating Service Clients in the AWS SDK for Java Developer Guide.
          */
-        final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
+        final S3Client s3 = S3Client.create();
 
         /*
          * Set the Amazon S3 bucket name, and then set a lifecycle rule on the
          * bucket to permanently delete objects 14 days after each object's
          * creation date.
          */
-        final BucketLifecycleConfiguration.Rule expirationRule = new BucketLifecycleConfiguration.Rule();
-        expirationRule.withExpirationInDays(14).withStatus("Enabled");
-        final BucketLifecycleConfiguration lifecycleConfig = new BucketLifecycleConfiguration().withRules(expirationRule);
+        final LifecycleRule lifeCycleRule = LifecycleRule.builder()
+                .expiration(LifecycleExpiration.builder().days(14).build())
+                .filter(LifecycleRuleFilter.builder().prefix("").build())
+                .status(ExpirationStatus.ENABLED)
+                .build();
+        final BucketLifecycleConfiguration lifecycleConfig = BucketLifecycleConfiguration.builder()
+                .rules(lifeCycleRule)
+                .build();
 
-        // Create the bucket and allow message objects to be stored in the bucket.
-        s3.createBucket(S3_BUCKET_NAME);
-        s3.setBucketLifecycleConfiguration(S3_BUCKET_NAME, lifecycleConfig);
+        // Create the bucket and configure it
+        s3.createBucket(CreateBucketRequest.builder().bucket(S3_BUCKET_NAME).build());
+        s3.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder()
+                .bucket(S3_BUCKET_NAME)
+                .lifecycleConfiguration(lifecycleConfig)
+                .build());
         System.out.println("Bucket created and configured.");
 
-        /*
-         * Set the Amazon SQS extended client configuration with large payload
-         * support enabled.
-         */
-        final ExtendedClientConfiguration extendedClientConfig =
-                new ExtendedClientConfiguration().withLargePayloadSupportEnabled(s3, S3_BUCKET_NAME);
+        // Set the Amazon SQS extended client configuration with large payload support enabled
+        final ExtendedClientConfiguration extendedClientConfig = new ExtendedClientConfiguration().withPayloadSupportEnabled(s3, S3_BUCKET_NAME);
 
-        final AmazonSQS sqsExtended = new AmazonSQSExtendedClient(AmazonSQSClientBuilder
-                        .defaultClient(), extendedClientConfig);
+        final SqsClient sqsExtended = new AmazonSQSExtendedClient(SqsClient.builder().build(), extendedClientConfig);
 
-        /*
-         * Create a long string of characters for the message object which will
-         * be stored in the bucket.
-         */
+        // Create a long string of characters for the message object
         int stringLength = 300000;
         char[] chars = new char[stringLength];
         Arrays.fill(chars, 'x');
         final String myLongString = new String(chars);
 
-        // Create a message queue for this example.
-        final String QueueName = "MyQueue" + UUID.randomUUID().toString();
-        final CreateQueueRequest createQueueRequest =
-                new CreateQueueRequest(QueueName);
-        final String myQueueUrl = sqsExtended
-                .createQueue(createQueueRequest).getQueueUrl();
+        // Create a message queue for this example
+        final String queueName = "MyQueue-" + UUID.randomUUID();
+        final CreateQueueResponse createQueueResponse = sqsExtended.createQueue(CreateQueueRequest.builder().queueName(queueName).build());
+        final String myQueueUrl = createQueueResponse.queueUrl();
         System.out.println("Queue created.");
 
-        // Send the message.
-        final SendMessageRequest myMessageRequest = new SendMessageRequest(myQueueUrl, myLongString);
-        sqsExtended.sendMessage(myMessageRequest);
+        // Send the message
+        final SendMessageRequest sendMessageRequest = SendMessageRequest.builder()
+                .queueUrl(myQueueUrl)
+                .messageBody(myLongString)
+                .build();
+        sqsExtended.sendMessage(sendMessageRequest);
         System.out.println("Sent the message.");
 
-        // Receive the message.
-        final ReceiveMessageRequest receiveMessageRequest =
-                new ReceiveMessageRequest(myQueueUrl);
-        List<Message> messages = sqsExtended
-                .receiveMessage(receiveMessageRequest).getMessages();
+        // Receive the message
+        final ReceiveMessageResponse receiveMessageResponse = sqsExtended.receiveMessage(ReceiveMessageRequest.builder().queueUrl(myQueueUrl).build());
+        List<Message> messages = receiveMessageResponse.messages();
 
-        // Print information about the message.
+        // Print information about the message
         for (Message message : messages) {
             System.out.println("\nMessage received.");
-            System.out.println("  ID: " + message.getMessageId());
-            System.out.println("  Receipt handle: " + message.getReceiptHandle());
-            System.out.println("  Message body (first 5 characters): "
-                    + message.getBody().substring(0, 5));
+            System.out.println("  ID: " + message.messageId());
+            System.out.println("  Receipt handle: " + message.receiptHandle());
+            System.out.println("  Message body (first 5 characters): " + message.body().substring(0, 5));
         }
 
-        // Delete the message, the queue, and the bucket.
-        final String messageReceiptHandle = messages.get(0).getReceiptHandle();
-        sqsExtended.deleteMessage(new DeleteMessageRequest(myQueueUrl,
-                messageReceiptHandle));
+        // Delete the message, the queue, and the bucket
+        final String messageReceiptHandle = messages.get(0).receiptHandle();
+        sqsExtended.deleteMessage(DeleteMessageRequest.builder().queueUrl(myQueueUrl).receiptHandle(messageReceiptHandle).build());
         System.out.println("Deleted the message.");
 
-        sqsExtended.deleteQueue(new DeleteQueueRequest(myQueueUrl));
+        sqsExtended.deleteQueue(DeleteQueueRequest.builder().queueUrl(myQueueUrl).build());
         System.out.println("Deleted the queue.");
 
         deleteBucketAndAllContents(s3);
         System.out.println("Deleted the bucket.");
 
-
     }
 
-    private static void deleteBucketAndAllContents(AmazonS3 client) {
+    private static void deleteBucketAndAllContents(S3Client client) {
 
-        ObjectListing objectListing = client.listObjects(S3_BUCKET_NAME);
+        ListObjectsV2Response listObjectsResponse = client.listObjectsV2(ListObjectsV2Request.builder().bucket(S3_BUCKET_NAME).build());
 
-        while (true) {
-            for (S3ObjectSummary objectSummary : objectListing
-                    .getObjectSummaries()) {
-                client.deleteObject(S3_BUCKET_NAME, objectSummary.getKey());
-            }
+        listObjectsResponse.contents().forEach(object -> {
+            client.deleteObject(DeleteObjectRequest.builder().bucket(S3_BUCKET_NAME).key(object.key()).build());
+        });
 
-            if (objectListing.isTruncated()) {
-                objectListing = client.listNextBatchOfObjects(objectListing);
-            } else {
-                break;
-            }
-        }
+        ListObjectVersionsResponse listVersionsResponse = client.listObjectVersions(ListObjectVersionsRequest.builder().bucket(S3_BUCKET_NAME).build());
 
-        final VersionListing list = client.listVersions(
-                new ListVersionsRequest().withBucketName(S3_BUCKET_NAME));
+        listVersionsResponse.versions().forEach(version -> {
+            client.deleteObject(DeleteObjectRequest.builder().bucket(S3_BUCKET_NAME).key(version.key()).versionId(version.versionId()).build());
+        });
 
-        for (S3VersionSummary s : list.getVersionSummaries()) {
-            client.deleteVersion(S3_BUCKET_NAME, s.getKey(), s.getVersionId());
-        }
-
-        client.deleteBucket(S3_BUCKET_NAME);
+        client.deleteBucket(DeleteBucketRequest.builder().bucket(S3_BUCKET_NAME).build());
     }
 }
