@@ -104,6 +104,8 @@ public class SqsExtendedClientExamples {
 
         deleteBucketAndAllContents(s3);
         System.out.println("Deleted the bucket.");
+
+
     }
 
     private static void deleteBucketAndAllContents(AmazonS3 client) {
