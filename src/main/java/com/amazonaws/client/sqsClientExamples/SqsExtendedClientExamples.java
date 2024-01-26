@@ -1,4 +1,4 @@
-package com.amazonaws.client.extendedClient;
+package com.amazonaws.client.sqsClientExamples;
 
 import com.amazon.sqs.javamessaging.AmazonSQSExtendedClient;
 import com.amazon.sqs.javamessaging.ExtendedClientConfiguration;

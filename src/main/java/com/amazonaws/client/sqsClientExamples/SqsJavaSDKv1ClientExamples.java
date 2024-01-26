@@ -1,4 +1,4 @@
-package com.amazonaws.client.extendedClient;
+package com.amazonaws.client.sqsClientExamples;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
@@ -13,12 +13,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Unit test for simple App.
+ * SQS Examples using AWS Java SDK 1.x
  */
-public class SqsExtendedClientExamplesTest {
+public class SqsJavaSDKv1ClientExamples {
     public static void main(String[] args) {
         final Map<String, MessageAttributeValue> msgValues = new HashMap<>();
-        // msgValues.put("__type", new MessageAttributeValue().withStringValue("Client_id").withDataType("String"));
+        msgValues.put("attributeName", new MessageAttributeValue().withStringValue("Client_id").withDataType("String"));
         final AmazonSQS sqsClient = AmazonSQSClientBuilder.standard().withRegion("us-east-1").build();
         System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.Log4JLogger");
 
@@ -32,17 +32,16 @@ public class SqsExtendedClientExamplesTest {
                 .withMessageBody("This is a test for sqs standard queue")
                 .withMessageAttributes(msgValues);
 
-       SendMessageResult result = sqsClient.sendMessage(request);
-       System.out.print(result.getMD5OfMessageAttributes());
-       System.out.println(msgValues);
+        SendMessageResult result = sqsClient.sendMessage(request);
+        System.out.print(result.getMD5OfMessageAttributes());
+        System.out.println(msgValues);
 
-       ReceiveMessageRequest receiveRequest = new ReceiveMessageRequest(myQueueUrl);
-       ReceiveMessageResult response = sqsClient.receiveMessage(receiveRequest);
-       if (response == null) {
-           System.out.println("The response is Null");
-       } else {
-           System.out.println("It is empty: " + response);
-       }
-
+        ReceiveMessageRequest receiveRequest = new ReceiveMessageRequest(myQueueUrl);
+        ReceiveMessageResult response = sqsClient.receiveMessage(receiveRequest);
+        if (response == null) {
+            System.out.println("The response is Null");
+        } else {
+            System.out.println("It is empty: " + response);
+        }
     }
 }
