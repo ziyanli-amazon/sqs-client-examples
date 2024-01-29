@@ -2,8 +2,8 @@ package com.amazonaws.client.sqsClientExamples;
 
 public class Constants {
 
-    final static String REGION = "us-east-1";
-    final static String SNS_SUBSCRIPTION_PROTOCOL = "sqs";
-    final static String PLAIN_TEXT = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    final static String SYMBOL_TEXT = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
+  public static final String REGION = "us-east-1";
+  public static final String SNS_SUBSCRIPTION_PROTOCOL = "sqs";
+  public static final String PLAIN_TEXT = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  public static final String SYMBOL_TEXT = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
 }
