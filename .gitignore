@@ -24,5 +24,6 @@ hs_err_pid*
 replay_pid*
 
 .idea
-.idea/
-target/classes/
+.idea/misc.xml
+
+target/

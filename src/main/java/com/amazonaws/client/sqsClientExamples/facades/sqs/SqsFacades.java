@@ -49,7 +49,7 @@ import com.amazonaws.services.sqs.model.UntagQueueRequest;
 import com.amazonaws.services.sqs.model.UntagQueueResult;
 import java.util.Map;
 
-class SqsFacades {
+public class SqsFacades {
   AmazonSQS sqs;
   String queueName;
   private String queueUrl;

@@ -1,5 +1,9 @@
 package com.amazonaws.client.sqsClientExamples;
 
+import static com.amazonaws.client.sqsClientExamples.Constants.REGION;
+import static com.amazonaws.client.sqsClientExamples.Constants.SNS_SUBSCRIPTION_PROTOCOL;
+import static com.amazonaws.client.sqsClientExamples.Utils.stringBytesCalculator;
+
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.amazonaws.services.sns.model.CreateTopicRequest;
@@ -21,16 +25,10 @@ import com.amazonaws.services.sqs.model.QueueAttributeName;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SetQueueAttributesRequest;
-
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
-import static com.amazonaws.client.sqsClientExamples.Constants.REGION;
-import static com.amazonaws.client.sqsClientExamples.Constants.SNS_SUBSCRIPTION_PROTOCOL;
-import static com.amazonaws.client.sqsClientExamples.Utils.plainTextGenerator;
-import static com.amazonaws.client.sqsClientExamples.Utils.stringBytesCalculator;
 
 /** Send and Receive messages from SNS to SQS using AWS Java SDK 1.x */
 public class SqsSnsJavaSDKv1ClientExamples {
@@ -80,7 +78,8 @@ public class SqsSnsJavaSDKv1ClientExamples {
     snsClient.subscribe(subscribeRequest);
 
     // Publish the message to the SNS topic
-    messageBody = plainTextGenerator(16, false);
+    //messageBody = plainTextGenerator(16, false);
+    messageBody = "ÿô";
     int messageBodySize = stringBytesCalculator(messageBody);
     System.out.println("Message Body is: " + messageBody);
     System.out.println("Message Body Size is: " + messageBodySize);

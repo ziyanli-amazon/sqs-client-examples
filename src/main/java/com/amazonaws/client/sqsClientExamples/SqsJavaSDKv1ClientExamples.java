@@ -17,7 +17,7 @@ import java.util.Map;
 public class SqsJavaSDKv1ClientExamples {
     public static void main(String[] args) {
         final Map<String, MessageAttributeValue> msgValues = new HashMap<>();
-        msgValues.put("attributeName", new MessageAttributeValue().withStringValue("Client_id").withDataType("String"));
+        msgValues.put("__type", new MessageAttributeValue().withStringValue("Client_id").withDataType("String"));
         final AmazonSQS sqsClient = AmazonSQSClientBuilder.standard().withRegion("us-east-1").build();
         System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.Log4JLogger");
 
