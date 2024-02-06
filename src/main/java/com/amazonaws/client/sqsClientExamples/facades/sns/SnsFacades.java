@@ -6,6 +6,8 @@ import com.amazonaws.services.sns.model.CreateTopicResult;
 import com.amazonaws.services.sns.model.DeleteTopicResult;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicRequest;
 import com.amazonaws.services.sns.model.ListSubscriptionsByTopicResult;
+import com.amazonaws.services.sns.model.ListTopicsRequest;
+import com.amazonaws.services.sns.model.ListTopicsResult;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 import com.amazonaws.services.sns.model.SetSubscriptionAttributesRequest;
@@ -68,5 +70,10 @@ public class SnsFacades {
   public SetSubscriptionAttributesResult setSubscriptionAttributes(String subscriptionArn, String attributeKey, String attributeValue) {
     SetSubscriptionAttributesRequest request = new SetSubscriptionAttributesRequest(subscriptionArn, attributeKey, attributeValue);
     return sns.setSubscriptionAttributes(request);
+  }
+
+  public ListTopicsResult listTopics() {
+    ListTopicsRequest request = new ListTopicsRequest();
+    return sns.listTopics(request);
   }
 }
