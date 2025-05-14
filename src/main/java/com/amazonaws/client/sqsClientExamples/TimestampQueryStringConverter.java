@@ -33,7 +33,7 @@ public class TimestampQueryStringConverter {
 
     private static String convertToQueryString(String input) {
         // Regex to match the timestamps
-        Pattern pattern = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z");
+        Pattern pattern = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z");
         Matcher matcher = pattern.matcher(input);
 
         String startTime = null;
